@@ -149,14 +149,14 @@ or by executing \"lein upgrade\". ")
   "Run a task or comma-separated list of tasks."
   [& raw-args]
   (user/init)
-  (let [project (if (.exists (io/file "project.clj"))
+  (let [project (when (.exists (io/file "project.clj"))
                   (project/init-project (project/read)))
         [task-name args] (task-args raw-args project)]
     (when (:min-lein-version project)
       (verify-min-version project))
     (http-settings)
     (when-not project
-      (let [default-project (project/merge-profiles project/defaults [:user :default])]
+      (let [default-project (project/merge-profiles project/defaults [:default])]
         (project/load-certificates default-project)
         (project/load-plugins default-project)))
     (try (warn-chaining task-name args)

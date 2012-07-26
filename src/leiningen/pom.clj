@@ -270,12 +270,9 @@
 
 (defmethod xml-tags ::project
   ([_ project]
-     (let [{:keys [without-profiles included-profiles]} (meta project)
-           test-project (-> (or without-profiles project)
-                            (project/merge-profiles
-                             (concat [:dev :test :default]
-                                     included-profiles))
-                            relativize)]
+     (let [test-project (-> project
+                            (project/merge-profiles [:dev :test :default])
+                            (relativize))]
        (list
         [:project {:xsi:schemaLocation "http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.0.xsd"
                    :xmlns "http://maven.apache.org/POM/4.0.0"
@@ -312,12 +309,6 @@
                 "\nFreeze snapshots to dated versions or set the"
                 "LEIN_SNAPSHOTS_IN_RELEASE environment variable to override.")))
 
-(defn- remove-profiles [project profiles]
-  (let [{:keys [included-profiles without-profiles]} (meta project)]
-    (project/merge-profiles (or without-profiles project)
-                            (remove #(some #{%} profiles)
-                                    included-profiles))))
-
 (defn make-pom
   ([project] (make-pom project false))
   ([project disclaimer?]
@@ -326,8 +317,9 @@
       (xml/indent-str
        (xml/sexp-as-element
         (xml-tags :project
-                  (relativize (remove-profiles project
-                                               [:dev :test :default])))))
+                  (-> project
+                      (project/unmerge-profiles [:dev :test :default])
+                      (relativize)))))
       (when disclaimer?
         disclaimer))))
 
