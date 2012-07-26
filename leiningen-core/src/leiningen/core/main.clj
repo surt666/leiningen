@@ -91,6 +91,19 @@
                parameters))
         (:arglists (meta task))))
 
+(defn- task-wrapper [project task-name]
+  (when-let [wrapper (get-in project [:task-wrappers (symbol task-name)])]
+    (cond (list? wrapper) ;; anonymous function
+          (eval wrapper)
+
+          (symbol? wrapper) ;; namespaced var
+          (let [[ns sym] (map symbol ((juxt namespace name) wrapper))]
+            (when-not (find-ns ns)
+              (require ns))
+            (ns-resolve ns sym))
+
+          :else (abort "Invalid task wrapper for" task-name))))
+
 (defn apply-task [task-name project args]
   (let [task (resolve-task task-name)]
     (when-not (or project (:no-project-needed (meta task)))
@@ -98,7 +111,10 @@
     (when-not (matching-arity? task args)
       (abort "Wrong number of arguments to" task-name "task."
              "\nExpected" (rest (:arglists (meta task)))))
-    (apply task project args)))
+    (apply (if-let [wrap (task-wrapper project task-name)]
+             (wrap task)
+             task)
+           project args)))
 
 (defn leiningen-version []
   (System/getenv "LEIN_VERSION"))
