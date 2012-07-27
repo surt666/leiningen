@@ -52,3 +52,13 @@
   (binding [*out* *err*]
     (apply println msg)
     (exit 1)))
+
+(defn resolve-symbol
+  "Resolve a fully qualified symbol by first requiring its namespace."
+  [sym]
+  (when-let [ns (namespace sym)]
+    (when (ns-exists? ns)
+      (let [ns (symbol ns)]
+        (when-not (find-ns ns)
+          (require ns)))
+      (resolve sym))))
