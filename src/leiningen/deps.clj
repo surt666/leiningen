@@ -1,7 +1,7 @@
 (ns leiningen.deps
   "Download all dependencies."
   (:require [leiningen.core.classpath :as classpath]
-            [leiningen.core.main :as main]
+            [leiningen.core.utils :as utils]
             [leiningen.core.eval :as eval]
             [cemerick.pomegranate.aether :as aether]
             [clojure.pprint :as pp]
@@ -89,4 +89,4 @@ force them to be updated, use `lein -U $TASK`."
                         (partial verify project))
              :else (classpath/resolve-dependencies :dependencies project))
        (catch DependencyResolutionException e
-         (main/abort (.getMessage e))))))
+         (utils/abort (.getMessage e))))))

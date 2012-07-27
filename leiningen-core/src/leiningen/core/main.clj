@@ -2,6 +2,7 @@
   (:require [leiningen.core.user :as user]
             [leiningen.core.project :as project]
             [leiningen.core.classpath :as classpath]
+            [leiningen.core.utils :as utils :refer [defdeprecated]]
             [clojure.java.io :as io]
             [clojure.string :as string]))
 
@@ -26,40 +27,13 @@
     ["help" [(first args)]]
     [(lookup-alias (first args) project) (rest args)]))
 
-(def ^:dynamic *debug* (System/getenv "DEBUG"))
-
-(defn debug [& args]
-  (when *debug* (apply println args)))
-
-(def ^:dynamic *info* true)
-
-(defn info [& args]
-  (when *info* (apply println args)))
-
-(def ^:dynamic *exit-process?*
-  "Bind to false to suppress process termination." true)
-
-(defn exit
-  "Exit the process. Rebind *exit-process?* in order to suppress actual process
-  exits for tools which may want to continue operating."
-  ([exit-code]
-     (if *exit-process?*
-       (do (shutdown-agents)
-           (System/exit exit-code))
-       (throw (ex-info "Suppressed exit" {:exit-code exit-code}))))
-  ([] (exit 0)))
-
-(defn abort
-  "Print msg to standard err and exit with a value of 1.
-  Will not directly exit under some circumstances; see `*exit-process?*`."
-  [& msg]
-  (binding [*out* *err*]
-    (when (seq msg)
-      (apply println msg))
-    (exit 1)))
+(defdeprecated debug utils/debug)
+(defdeprecated info  utils/info)
+(defdeprecated exit  utils/exit)
+(defdeprecated abort utils/abort)
 
 (defn ^:no-project-needed task-not-found [task & _]
-  (abort (str task " is not a task. Use \"lein help\" to list all tasks.")))
+  (utils/abort (str task " is not a task. Use \"lein help\" to list all tasks.")))
 
 ;; TODO: got to be a cleaner way to do this, right?
 (defn- drop-partial-args [pargs]
@@ -96,9 +70,9 @@
 (defn apply-task [task-name project args]
   (let [task (resolve-task task-name)]
     (when-not (or project (:no-project-needed (meta task)))
-      (abort "Couldn't find project.clj, which is needed for" task-name))
+      (utils/abort "Couldn't find project.clj, which is needed for" task-name))
     (when-not (matching-arity? task args)
-      (abort "Wrong number of arguments to" task-name "task."
+      (utils/abort "Wrong number of arguments to" task-name "task."
              "\nExpected" (rest (:arglists (meta task)))))
     (let [value (apply task project args)]
       ;; TODO: remove this for final release
@@ -176,8 +150,8 @@ or by executing \"lein upgrade\". ")
            (when-let [[_ code] (and (.getMessage e)
                                     (re-find #"Process exited with (\d+)"
                                              (.getMessage e)))]
-             (exit (Integer. code)))
+             (utils/exit (Integer. code)))
            (when-not (re-find #"Suppressed exit:" (or (.getMessage e) ""))
              (.printStackTrace e))
-           (exit 1))))
-  (exit 0))
+           (utils/exit 1))))
+  (utils/exit 0))

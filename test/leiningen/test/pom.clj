@@ -277,7 +277,7 @@
 
 
 (deftest test-snapshot-checking
-  (binding [leiningen.core.main/*exit-process?* false]
+  (binding [leiningen.core.utils/*exit-process?* false]
     (let [project (assoc sample-project :version "1.0"
                          :dependencies [['clojure "1.0.0-SNAPSHOT"]])]
       (is (thrown? Exception (pom project))))))
