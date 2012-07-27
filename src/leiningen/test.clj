@@ -4,7 +4,7 @@
   (:require [clojure.java.io :as io]
             [bultitude.core :as b]
             [leiningen.core.eval :as eval]
-            [leiningen.core.main :as main]
+            [leiningen.core.utils :as utils]
             [leiningen.core.project :as project])
   (:import (java.io File)))
 
@@ -61,7 +61,7 @@
                     [(:default (:test-selectors project))]
                     selectors)]
     (when (and (not (:test-selectors project)) (some keyword? args))
-      (main/abort "Please specify :test-selectors in project.clj"))
+      (utils/abort "Please specify :test-selectors in project.clj"))
     [nses selectors]))
 
 (defn test
@@ -84,9 +84,9 @@ if they are symbols they will be treated as a list of test namespaces to run.
 With no arguments the :default test selector is used if present, otherwise all
 tests are run."
   [project & tests]
-  (binding [main/*exit-process?* (if (= :leiningen (:eval-in project))
+  (binding [utils/*exit-process?* (if (= :leiningen (:eval-in project))
                                    false
-                                   main/*exit-process?*)
+                                   utils/*exit-process?*)
             *exit-after-tests* (if (= :leiningen (:eval-in project))
                                    false
                                    *exit-after-tests*)]

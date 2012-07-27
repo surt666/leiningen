@@ -11,7 +11,7 @@
             [clojure.tools.nrepl.server :as nrepl.server]
             [leiningen.core.user :as user]
             [leiningen.core.classpath :as classpath]
-            [leiningen.core.main :as main]))
+            [leiningen.core.utils :as utils]))
 
 (def profile {:dependencies '[[org.clojure/tools.nrepl "0.2.0-beta7"
                                :exclusions [org.clojure/clojure]]
@@ -133,4 +133,4 @@ and port."
                                :headless)
      ":connect" (do (require 'cemerick.drawbridge.client)
                     (reply/launch-nrepl {:attach (first opts)}))
-     (main/abort "Unrecognized flag:" flag))))
+     (utils/abort "Unrecognized flag:" flag))))

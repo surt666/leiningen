@@ -1,6 +1,6 @@
 (ns leiningen.pom
   "Write a pom.xml file to disk for Maven interoperability."
-  (:require [leiningen.core.main :as main]
+  (:require [leiningen.core.utils :as utils]
             [leiningen.core.project :as project]
             [clojure.java.io :as io]
             [clojure.string :as s]
@@ -308,7 +308,7 @@
   (when (and (not (snapshot? project))
              (not (System/getenv "LEIN_SNAPSHOTS_IN_RELEASE"))
              (some #(re-find #"SNAPSHOT" (second %)) (:dependencies project)))
-    (main/abort "Release versions may not depend upon snapshots."
+    (utils/abort "Release versions may not depend upon snapshots."
                 "\nFreeze snapshots to dated versions or set the"
                 "LEIN_SNAPSHOTS_IN_RELEASE environment variable to override.")))
 
@@ -348,6 +348,6 @@
        (.mkdirs (.getParentFile pom-file))
        (with-open [pom-writer (io/writer pom-file)]
          (.write pom-writer pom))
-       (main/info "Wrote" (str pom-file))
+       (utils/info "Wrote" (str pom-file))
        (.getAbsolutePath pom-file)))
   ([project] (pom project "pom.xml")))

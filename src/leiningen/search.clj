@@ -4,6 +4,7 @@
             [leiningen.core.user :as user]
             [leiningen.core.project :as project]
             [leiningen.core.main :as main]
+            [leiningen.core.utils :as utils]
             [clucy.core :as clucy]
             [clj-http.client :as http])
   (:import (java.util.zip ZipFile)
@@ -48,18 +49,18 @@
             (recur cnt*)))))))
 
 (defn- download-index [[id {url :url}]]
-  (main/info "Downloading index from" id "-" url)
-  (main/info "This can take a very, very long time. While you wait you might")
-  (main/info "be interested in searching via the web interfaces at")
-  (main/info "http://search.maven.org or http://clojars.org.")
-  (main/info "0%...")
+  (utils/info "Downloading index from" id "-" url)
+  (utils/info "This can take a very, very long time. While you wait you might")
+  (utils/info "be interested in searching via the web interfaces at")
+  (utils/info "http://search.maven.org or http://clojars.org.")
+  (utils/info "0%...")
   (flush)
   (let [index-url ^URL (remote-index-url url)
         tmp (File/createTempFile "lein" "index")
         tmp-stream (FileOutputStream. tmp)
         progress (atom 0)
         callback (fn [{:keys [percentage]}]
-                   (when (and main/*info* (not= percentage @progress))
+                   (when (and utils/*info* (not= percentage @progress))
                      (reset! progress percentage)
                      (print (str "\r" percentage "%..."))
                      (flush)))]
@@ -68,7 +69,7 @@
            (download index-url tmp-stream :callback callback))
          (unzip tmp (index-location url))
          (finally (.delete tmp))))
-  (main/info))
+  (utils/info))
 
 (defn- download-needed? [[id {:keys [url]}]]
   (not (.exists (index-location url))))
