@@ -3,6 +3,7 @@
   (:require [clojure.string :as string]
             [leiningen.core.eval :as eval]
             [leiningen.core.main :as main]
+            [leiningen.core.utils :as utils]
             [clojure.pprint :as pprint]))
 
 (def ^:dynamic *trampoline?* false)
@@ -28,7 +29,7 @@
 
 (defn write-trampoline [project forms]
   (let [command (trampoline-command-string project forms)]
-    (main/debug "Trampoline command:" command)
+    (utils/debug "Trampoline command:" command)
     (spit (System/getProperty "leiningen.trampoline-file") command)))
 
 (defn ^:higher-order trampoline
@@ -43,11 +44,11 @@ Use this to save memory or to work around stdin issues."
   ;; TODO: allow trampoline calls to chain with do
   (let [forms (atom [])]
     (when (:eval-in-leiningen project)
-      (main/info "Warning: trampoline has no effect with :eval-in-leiningen."))
+      (utils/info "Warning: trampoline has no effect with :eval-in-leiningen."))
     (binding [*trampoline?* true]
       (main/apply-task (main/lookup-alias task-name project)
                        (with-meta (assoc project :eval-in :trampoline)
                          {:trampoline-forms forms}) args))
     (if (seq @forms)
       (write-trampoline project @forms)
-      (main/abort task-name "did not run any project code for trampolining."))))
+      (utils/abort task-name "did not run any project code for trampolining."))))

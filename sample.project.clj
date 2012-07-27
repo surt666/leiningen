@@ -86,8 +86,9 @@
                          ~(fn [p] (str (:root p) "/lib/dev/*"))]
   ;; Load these namespaces on startup to pick up hooks from them.
   :hooks [leiningen.hooks.difftest]
-  ;; Predicates to determine whether to run a test or not. See tutorial.
-  :test-selectors {:default (fn [t] (not (or (:integration v) (:regression v))))
+  ;; Predicates to determine whether to run a test or not, take test metadata
+  ;; as argument. See Leiningen tutorial for more information.
+  :test-selectors {:default (fn [m] (not (or (:integration m) (:regression m))))
                    :integration :integration
                    :regression :regression}
   ;; These namespaces will be AOT-compiled. Needed for gen-class and
@@ -156,6 +157,7 @@
   ;; apply for all :repositories. Usually you will not set :update
   ;; directly but apply the "update" profile instead.
   :update :always
+  :checksum :fail
   ;; the deploy task will give preference to repositories specified in
   ;; :deploy-repositories, and repos listed there will not be used for
   ;; dependency resolution.
@@ -230,7 +232,17 @@
   ;; Extensions here will be propagated to the pom but not used by Leiningen.
   :extensions [[org.apache.maven.wagon/wagon-webdav "1.0-beta-2"]
                [foo/bar-baz "1.0"]]
-  ;; If :scm is set, all key/value pairs appear exactly as configured, otherwise
-  ;; Leiningen will try to use information from a .git directory if it is present.
-  ;; The only purpose is the generation of the <scm> tag in pom.xml.
+  ;; Include <scm> tag in generated pom.xml file. All key/value pairs
+  ;; appear exactly as configured. If absent, Leiningen will try to
+  ;; use information from a .git directory.
   :scm {:name "git" :tag "098afd745bcd" :url "http://127.0.0.1/git/my-project"})
+
+;;; Environment Variables used by Leiningen
+
+;; JAVA_CMD - executable to use for java(1)
+;; JVM_OPTS - extra options to pass to the java command
+;; DEBUG - increased verbosity
+;; LEIN_SNAPSHOTS_IN_RELEASE - allow releases to depend on snapshots
+;; LEIN_REPL_PORT - port on which to start nREPL server
+;; http_proxy - host and port to proxy HTTP connections through
+;; http_no_proxy - hosts which may be accessed without proxying

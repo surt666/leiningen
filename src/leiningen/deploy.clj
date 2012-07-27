@@ -2,7 +2,7 @@
   "Build and deploy jar to remote repository."
   (:require [cemerick.pomegranate.aether :as aether]
             [leiningen.core.classpath :as classpath]
-            [leiningen.core.main :as main]
+            [leiningen.core.utils :as utils]
             [leiningen.core.eval :as eval]
             [clojure.java.io :as io]
             [leiningen.pom :as pom]
@@ -46,7 +46,7 @@
   (let [exit (binding [*out* (java.io.StringWriter.)]
                (eval/sh "gpg" "--yes" "-ab" file))]
     (when-not (zero? exit)
-      (main/abort "Could not sign" file))
+      (utils/abort "Could not sign" file))
     (str file ".asc")))
 
 (defn signatures-for [jar-file pom-file coords]
@@ -66,7 +66,7 @@
 (defn warn-missing-metadata [project]
   (doseq [key [:description :license :url]]
     (when (or (nil? (project key)) (re-find #"FIXME" (str (project key))))
-      (main/info "WARNING: please set" key "in project.clj."))))
+      (utils/info "WARNING: please set" key "in project.clj."))))
 
 (defn deploy
   "Build jar and deploy to remote repository.
@@ -86,14 +86,14 @@ configure your credentials so you are not prompted on each deploy."
      (let [repo (repo-for project repository-name)
            files (files-for project repo)]
        (try
-         (main/debug "Deploying" files "to" repo)
+         (utils/debug "Deploying" files "to" repo)
          (aether/deploy-artifacts :artifacts (keys files)
                                   :files files
                                   :transfer-listener :stdout
                                   :repository [repo])
          (catch org.sonatype.aether.deployment.DeploymentException e
-           (when main/*debug* (.printStackTrace e))
-           (main/abort (abort-message (.getMessage e)))))))
+           (when utils/*debug* (.printStackTrace e))
+           (utils/abort (abort-message (.getMessage e)))))))
   ([project]
      (deploy project (if (pom/snapshot? project)
                        "snapshots"
