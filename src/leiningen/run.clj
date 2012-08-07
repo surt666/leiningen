@@ -28,7 +28,7 @@
                                                        (normalize-main given))))
                                    (catch FileNotFoundException _#)))
        (catch clojure.lang.ExceptionInfo e
-         (main/abort))))
+         (utils/abort))))
 
 (defn ^{:help-arglists '([])} run
   "Run the project's -main function.

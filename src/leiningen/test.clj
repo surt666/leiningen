@@ -95,4 +95,4 @@ tests are run."
           form (form-for-testing-namespaces nses nil (vec selectors))]
       (try (eval/eval-in-project project form '(require 'clojure.test))
            (catch clojure.lang.ExceptionInfo e
-             (main/abort "Tests failed."))))))
+             (utils/abort "Tests failed."))))))

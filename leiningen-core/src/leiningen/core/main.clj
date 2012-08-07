@@ -72,7 +72,7 @@
       ;; TODO: remove this for final release
       (when (and value (number? value))
         (println "WARNING: using numeric exit values in plugins is deprecated.")
-        (println "Plugins should use leiningen.core.main/abort instead.")
+        (println "Plugins should use leiningen.core.utils/abort instead.")
         (println "Support for this will be removed before the stable 2.0.0 release.")
         (abort task-name "failed."))
       value)))

@@ -218,8 +218,8 @@ just expect that it will be nil if there's no project present. Use
 
 In Leiningen 1.x, having a task function return a numeric value was a
 way to signal the process's exit code. In Leiningen 2.x, tasks should
-call the `leiningen.core.main/abort` function when a fatal error is
-encountered. If the `leiningen.core.main/*exit-process?*` var is bound
+call the `leiningen.core.utils/abort` function when a fatal error is
+encountered. If the `leiningen.core.utils/*exit-process?*` var is bound
 to true, then this will trigger an exit, but in some contexts (like
 `with-profiles`) it will simply trigger an exception and go on to the
 next task.
