@@ -33,6 +33,10 @@
 (defn info [& args]
   (when *info* (apply println args)))
 
+(defn error [& args]
+  (binding [*out* *err*]
+    (apply println "Error:" args)))
+
 (def ^:dynamic *exit-process?*
   "Bind to false to suppress process termination." true)
 

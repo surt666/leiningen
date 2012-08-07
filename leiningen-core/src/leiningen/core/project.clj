@@ -261,16 +261,22 @@
   (for [ns (plugin-namespaces project 'middleware)]
     (symbol (name ns) "project")))
 
-(defn- load-hooks [project & [ignore-missing?]]
-  (doseq [hook-ns (concat (:hooks project)
-                          (plugin-hooks project))]
-    (try (if-let [hook (utils/resolve-symbol (symbol hook-ns 'activate))]
-           (hook)
-           (println "Error: cannot resolve hook" hook-ns))
+(defn- load-hook [hook-ns]
+  (when-let [hook (try (utils/resolve-symbol (symbol (name hook-ns) "activate"))
+                       (catch Throwable e
+                         (utils/error "problem requiring" hook-ns "hook")
+                         (throw e)))]
+    (try (hook)
          (catch Throwable e
-           (binding [*out* *err*]
-             (println "Error: problem requiring" hook-ns "hook"))
+           (utils/error "problem activating" hook-ns "hook")
            (throw e)))))
+
+(defn- load-hooks [project & [ignore-missing?]]
+  (doseq [hook-ns (plugin-hooks project)]
+    (load-hook hook-ns))
+  (doseq [hook-ns (:hooks project)]
+    (or (load-hook hook-ns)
+        (println "Error: cannot resolve hook" hook-ns))))
 
 (defn apply-middleware
   ([project]
