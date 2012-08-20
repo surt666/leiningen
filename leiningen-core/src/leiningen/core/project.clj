@@ -183,11 +183,19 @@
 
         :else (doto latter (println "has a type mismatch merging profiles."))))
 
+(defn- add-active-profiles [project profiles]
+  (vary-meta project update-in
+             [:active-profiles] (fnil into []) profiles))
+
+(defn- combine-profile [project profile]
+  (add-active-profiles (merge-with profile-key-merge project profile)
+                       (:active-profiles (meta profile))))
+
 (defn- combine-profiles [project profiles]
   ;; We reverse because we want profile values to override the project, so we
   ;; need "last wins" in the reduce, but we want the first profile specified by
   ;; the user to take precedence.
-  (reduce (partial merge-with profile-key-merge)
+  (reduce combine-profile
           project
           (reverse profiles)))
 
@@ -200,7 +208,8 @@
         (let [result (get profiles profile)]
           (when (and (nil? result) (not (#{:dev :user :test :production} profile)))
             (println "Warning: profile" profile "not found."))
-          (lookup-profile profiles result))
+          (add-active-profiles (lookup-profile profiles result)
+                               [profile]))
 
         (vector? profile)
         (combine-profiles {} (map (partial lookup-profile profiles) profile))
@@ -310,7 +319,7 @@
    and the appropriate middleware applied."
   [project profiles]
   (-> (:without-profiles (meta project) project)
-      (with-meta (dissoc (meta project) :without-profiles :included-profiles))
+      (with-meta (dissoc (meta project) :without-profiles :included-profiles :active-profiles))
       (apply-profiles profiles)
       (apply-middleware)))
 
@@ -318,17 +327,21 @@
   "Compute a fresh version of the project map with the given profiles merged into
    list of active profiles and the appropriate middleware applied."
   [project profiles]
-  (reset-profiles project
-                  (concat (:included-profiles (meta project))
-                          profiles)))
+  (if (seq profiles)
+    (reset-profiles project
+                    (concat (:included-profiles (meta project))
+                            profiles))
+    project))
 
 (defn unmerge-profiles
   "Compute a fresh version of the project map with the given profiles unmerged from
    list of active profiles and the appropriate middleware applied."
   [project profiles]
-  (reset-profiles project
-                  (remove (set profiles)
-                          (:included-profiles (meta project)))))
+  (if (seq profiles)
+    (reset-profiles project
+                    (remove (set profiles)
+                            (:included-profiles (meta project))))
+    project))
 
 (defn init-project
   "Initializes a project: loads plugins, then applies middleware, and finally loads hooks.
